@@ -69,10 +69,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transaction History'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: _invoices.isEmpty
           ? const Center(
               child: Text('No transactions found'),

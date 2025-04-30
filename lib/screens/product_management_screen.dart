@@ -130,18 +130,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Product Management'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          if (_products.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.receipt),
-              onPressed: _navigateToBilling,
-              tooltip: 'Generate Bill',
-            ),
-        ],
-      ),
       body: Column(
         children: [
           Card(

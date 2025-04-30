@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GST Billing App'),
+        title: const Text('TATA Retail Solutions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: GridView.count(
