@@ -199,4 +199,24 @@ class DatabaseService {
 
     return invoices;
   }
+
+  Future<int> getLastInvoiceNumber() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      'SELECT invoiceNumber FROM invoices ORDER BY id DESC LIMIT 1'
+    );
+    
+    if (result.isEmpty) {
+      return 0;
+    }
+    
+    final lastInvoiceNumber = result.first['invoiceNumber'] as String;
+    // Extract the numeric part from the invoice number
+    final match = RegExp(r'\d+').firstMatch(lastInvoiceNumber);
+    if (match == null) {
+      return 0;
+    }
+    
+    return int.parse(match.group(0)!);
+  }
 } 

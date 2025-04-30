@@ -19,6 +19,14 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   double _totalSales = 0;
   double _totalGst = 0;
 
+  // Color scheme
+  final Color primaryColor = const Color(0xFF2196F3); // Blue
+  final Color secondaryColor = const Color(0xFF4CAF50); // Green
+  final Color accentColor = const Color(0xFFFFC107); // Amber
+  final Color backgroundColor = const Color(0xFFF5F5F5); // Light Grey
+  final Color cardColor = Colors.white;
+  final Color textColor = const Color(0xFF333333);
+
   @override
   void initState() {
     super.initState();
@@ -59,12 +67,56 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     }
   }
 
+  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
+    return Card(
+      elevation: 2,
+      color: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Icon(icon, size: 32, color: color),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: textColor.withOpacity(0.7),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text('Sales Report'),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
       body: _invoices.isEmpty
-          ? const Center(
-              child: Text('No sales data available'),
+          ? Center(
+              child: Text(
+                'No sales data available',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 18,
+                ),
+              ),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -79,7 +131,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           'Total Sales',
                           '₹${_totalSales.toStringAsFixed(2)}',
                           Icons.attach_money,
-                          Colors.green,
+                          primaryColor,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -88,7 +140,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           'Total GST',
                           '₹${_totalGst.toStringAsFixed(2)}',
                           Icons.receipt,
-                          Colors.blue,
+                          secondaryColor,
                         ),
                       ),
                     ],
@@ -101,7 +153,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           'Total Invoices',
                           _invoices.length.toString(),
                           Icons.list_alt,
-                          Colors.orange,
+                          accentColor,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -116,101 +168,88 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   // Product-wise Sales
-                  const Text(
+                  Text(
                     'Product-wise Sales',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ..._productSales.entries.map((entry) {
-                    final percentage = (entry.value / _totalSales * 100).toStringAsFixed(1);
-                    return Card(
-                      child: ListTile(
-                        title: Text(entry.key),
-                        subtitle: LinearProgressIndicator(
-                          value: entry.value / _totalSales,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '₹${entry.value.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                  Card(
+                    elevation: 2,
+                    color: cardColor,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _productSales.length,
+                      itemBuilder: (context, index) {
+                        final productName = _productSales.keys.elementAt(index);
+                        final sales = _productSales[productName]!;
+                        return ListTile(
+                          title: Text(
+                            productName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
                             ),
-                            Text(
-                              '$percentage%',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
+                          ),
+                          trailing: Text(
+                            '₹${sales.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 24),
-
                   // Date-wise Sales
-                  const Text(
+                  Text(
                     'Date-wise Sales',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ..._dateWiseSales.entries.map((entry) {
-                    return Card(
-                      child: ListTile(
-                        title: Text(entry.key),
-                        trailing: Text(
-                          '₹${entry.value.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  Card(
+                    elevation: 2,
+                    color: cardColor,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _dateWiseSales.length,
+                      itemBuilder: (context, index) {
+                        final date = _dateWiseSales.keys.elementAt(index);
+                        final sales = _dateWiseSales[date]!;
+                        return ListTile(
+                          title: Text(
+                            date,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                          trailing: Text(
+                            '₹${sales.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 } 

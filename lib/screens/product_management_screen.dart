@@ -18,6 +18,14 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   double _selectedGstRate = 0.18;
   List<Product> _products = [];
 
+  // Color scheme
+  final Color primaryColor = const Color(0xFF2196F3); // Blue
+  final Color secondaryColor = const Color(0xFF4CAF50); // Green
+  final Color accentColor = const Color(0xFFFFC107); // Amber
+  final Color backgroundColor = const Color(0xFFF5F5F5); // Light Grey
+  final Color cardColor = Colors.white;
+  final Color textColor = const Color(0xFF333333);
+
   @override
   void initState() {
     super.initState();
@@ -57,208 +65,195 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       
       await _loadProducts();
       print('Products reloaded, count: ${_products.length}');
-
+      
       _nameController.clear();
       _priceController.clear();
       _descriptionController.clear();
       setState(() {
         _selectedGstRate = 0.18;
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product added successfully')),
-        );
-      }
     } catch (e) {
       print('Error adding product: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding product: $e')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding product: $e')),
+      );
     }
-  }
-
-  Future<void> _deleteProduct(Product product) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete "${product.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldDelete == true) {
-      try {
-        await _dbService.deleteProduct(product.id);
-        await _loadProducts();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product deleted successfully')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting product: $e')),
-          );
-        }
-      }
-    }
-  }
-
-  void _navigateToBilling() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const BillingScreen(),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Product Name*',
-                      border: OutlineInputBorder(),
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text('Product Management'),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Add Product Form
+            Card(
+              elevation: 2,
+              color: cardColor,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Add New Product',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _priceController,
-                    decoration: const InputDecoration(
-                      labelText: 'Price*',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Product Name',
+                        labelStyle: TextStyle(color: primaryColor),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                      ),
                     ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _priceController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Price',
+                        labelStyle: TextStyle(color: primaryColor),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                      ),
                     ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<double>(
-                    value: _selectedGstRate,
-                    decoration: const InputDecoration(
-                      labelText: 'GST Rate*',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Description (Optional)',
+                        labelStyle: TextStyle(color: primaryColor),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                      ),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 0.05, child: Text('5%')),
-                      DropdownMenuItem(value: 0.12, child: Text('12%')),
-                      DropdownMenuItem(value: 0.18, child: Text('18%')),
-                      DropdownMenuItem(value: 0.28, child: Text('28%')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
+                    const SizedBox(height: 16),
+                    Text(
+                      'GST Rate',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Slider(
+                      value: _selectedGstRate,
+                      min: 0.05,
+                      max: 0.28,
+                      divisions: 3,
+                      label: '${(_selectedGstRate * 100).toStringAsFixed(0)}%',
+                      onChanged: (value) {
                         setState(() {
                           _selectedGstRate = value;
                         });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _addProduct,
-                    child: const Text('Add Product'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_products.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Added Products',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                      },
+                      activeColor: primaryColor,
+                      inactiveColor: primaryColor.withOpacity(0.3),
+                    ),
+                    Text(
+                      '${(_selectedGstRate * 100).toStringAsFixed(0)}%',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _addProduct,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Add Product'),
+                    ),
+                  ],
                 ),
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _products.length,
-                itemBuilder: (context, index) {
-                  final product = _products[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: ListTile(
-                      title: Text(
-                        product.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Price: ₹${product.price.toStringAsFixed(2)}'),
-                          Text('GST: ${(product.gstRate * 100).toInt()}%'),
-                          if (product.description != null)
-                            Text('Description: ${product.description}'),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.shopping_cart),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BillingScreen(
-                                    initialProduct: product,
-                                  ),
-                                ),
-                              );
-                            },
-                            tooltip: 'Add to Bill',
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteProduct(product),
-                            tooltip: 'Delete Product',
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+            const SizedBox(height: 16),
+            // Products List
+            Text(
+              'Existing Products',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
               ),
             ),
+            const SizedBox(height: 8),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _products.length,
+              itemBuilder: (context, index) {
+                final product = _products[index];
+                return Card(
+                  elevation: 2,
+                  color: cardColor,
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: ListTile(
+                    title: Text(
+                      product.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '₹${product.price.toStringAsFixed(2)} (GST: ${(product.gstRate * 100).toStringAsFixed(0)}%)',
+                      style: TextStyle(color: textColor.withOpacity(0.7)),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        try {
+                          await _dbService.deleteProduct(product.id);
+                          await _loadProducts();
+                        } catch (e) {
+                          print('Error deleting product: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error deleting product: $e')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
-        ],
+        ),
       ),
     );
   }

@@ -15,6 +15,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   final GstCalculator _gstCalculator = GstCalculator();
   List<Invoice> _invoices = [];
 
+  // Color scheme
+  final Color primaryColor = const Color(0xFF2196F3); // Blue
+  final Color secondaryColor = const Color(0xFF4CAF50); // Green
+  final Color accentColor = const Color(0xFFFFC107); // Amber
+  final Color backgroundColor = const Color(0xFFF5F5F5); // Light Grey
+  final Color cardColor = Colors.white;
+  final Color textColor = const Color(0xFF333333);
+
   @override
   void initState() {
     super.initState();
@@ -32,16 +40,29 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Invoice'),
-        content: Text('Are you sure you want to delete invoice #${invoice.invoiceNumber}?'),
+        title: Text(
+          'Delete Invoice',
+          style: TextStyle(color: textColor),
+        ),
+        content: Text(
+          'Are you sure you want to delete invoice #${invoice.invoiceNumber}?',
+          style: TextStyle(color: textColor),
+        ),
+        backgroundColor: cardColor,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: textColor),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -69,9 +90,21 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text('Transaction History'),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
       body: _invoices.isEmpty
-          ? const Center(
-              child: Text('No transactions found'),
+          ? Center(
+              child: Text(
+                'No transactions found',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 18,
+                ),
+              ),
             )
           : ListView.builder(
               itemCount: _invoices.length,
@@ -86,11 +119,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
                 return Card(
                   margin: const EdgeInsets.all(8.0),
+                  elevation: 2,
+                  color: cardColor,
                   child: ExpansionTile(
-                    title: Text('Invoice #${invoice.invoiceNumber}'),
+                    title: Text(
+                      'Invoice #${invoice.invoiceNumber}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
                     subtitle: Text(
                       'Date: ${invoice.createdAt.toString().split(' ')[0]}\n'
                       'Customer: ${invoice.customerName ?? 'N/A'}',
+                      style: TextStyle(color: textColor.withOpacity(0.7)),
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
@@ -103,18 +145,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Items:',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
+                                color: textColor,
                               ),
                             ),
                             const SizedBox(height: 8),
                             if (invoice.items.isEmpty)
-                              const Padding(
-                                padding: EdgeInsets.only(bottom: 8.0),
-                                child: Text('No items in this invoice'),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Text(
+                                  'No items in this invoice',
+                                  style: TextStyle(color: textColor),
+                                ),
                               )
                             else
                               ...invoice.items.map((item) {
@@ -128,9 +174,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                       Expanded(
                                         child: Text(
                                           '${item.product.name} (${item.quantity} x ₹${item.product.price})',
+                                          style: TextStyle(color: textColor),
                                         ),
                                       ),
-                                      Text('₹${itemTotal.toStringAsFixed(2)}'),
+                                      Text(
+                                        '₹${itemTotal.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 );
@@ -139,50 +192,87 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Base Amount:'),
-                                Text('₹${baseAmount.toStringAsFixed(2)}'),
+                                Text(
+                                  'Base Amount:',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                Text(
+                                  '₹${baseAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('CGST (${(gstRate * 50).toStringAsFixed(0)}%):'),
-                                Text('₹${cgstAmount.toStringAsFixed(2)}'),
+                                Text(
+                                  'CGST (${(gstRate * 50).toStringAsFixed(0)}%):',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                Text(
+                                  '₹${cgstAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: secondaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('SGST (${(gstRate * 50).toStringAsFixed(0)}%):'),
-                                Text('₹${sgstAmount.toStringAsFixed(2)}'),
+                                Text(
+                                  'SGST (${(gstRate * 50).toStringAsFixed(0)}%):',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                Text(
+                                  '₹${sgstAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: secondaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Total GST:'),
-                                Text('₹${gstAmount.toStringAsFixed(2)}'),
+                                Text(
+                                  'Total GST:',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                Text(
+                                  '₹${gstAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: secondaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Total Amount:',
                                   style: TextStyle(
+                                    color: textColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
                                   ),
                                 ),
                                 Text(
                                   '₹${totalAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
+                                    color: primaryColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: 18,
                                   ),
                                 ),
                               ],

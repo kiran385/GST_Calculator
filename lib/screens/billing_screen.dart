@@ -16,11 +16,24 @@ class _BillingScreenState extends State<BillingScreen> {
   final DatabaseService _dbService = DatabaseService();
   final GstCalculator _gstCalculator = GstCalculator();
   final TextEditingController _customerNameController = TextEditingController();
-  final TextEditingController _invoiceNumberController = TextEditingController();
   List<Product> _products = [];
   List<InvoiceItem> _selectedItems = [];
   double _totalAmount = 0;
   double _totalGst = 0;
+
+  // Color scheme
+  final Color primaryColor = const Color(0xFF2196F3); // Blue
+  final Color secondaryColor = const Color(0xFF4CAF50); // Green
+  final Color accentColor = const Color(0xFFFFC107); // Amber
+  final Color backgroundColor = const Color(0xFFF5F5F5); // Light Grey
+  final Color cardColor = Colors.white;
+  final Color textColor = const Color(0xFF333333);
+
+  Future<String> _generateInvoiceNumber() async {
+    final lastNumber = await _dbService.getLastInvoiceNumber();
+    final nextNumber = lastNumber + 1;
+    return 'INV-${nextNumber.toString().padLeft(6, '0')}';
+  }
 
   @override
   void initState() {
@@ -92,17 +105,10 @@ class _BillingScreenState extends State<BillingScreen> {
       return;
     }
 
-    if (_invoiceNumberController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter invoice number')),
-      );
-      return;
-    }
-
     final invoice = Invoice(
       id: DateTime.now().millisecondsSinceEpoch,
       customerName: _customerNameController.text,
-      invoiceNumber: _invoiceNumberController.text,
+      invoiceNumber: await _generateInvoiceNumber(),
       items: _selectedItems,
       createdAt: DateTime.now(),
     );
@@ -127,7 +133,6 @@ class _BillingScreenState extends State<BillingScreen> {
   void _resetForm() {
     setState(() {
       _customerNameController.clear();
-      _invoiceNumberController.clear();
       _selectedItems.clear();
       _totalAmount = 0;
       _totalGst = 0;
@@ -137,28 +142,34 @@ class _BillingScreenState extends State<BillingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text('Create Invoice'),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
       body: Column(
         children: [
           // Customer Details Card
           Card(
             margin: const EdgeInsets.all(8.0),
+            elevation: 2,
+            color: cardColor,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   TextField(
                     controller: _customerNameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Customer Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _invoiceNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Invoice Number',
-                      border: OutlineInputBorder(),
+                      labelStyle: TextStyle(color: primaryColor),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: primaryColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: primaryColor, width: 2),
+                      ),
                     ),
                   ),
                 ],
@@ -179,25 +190,46 @@ class _BillingScreenState extends State<BillingScreen> {
 
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  elevation: 2,
+                  color: cardColor,
                   child: ListTile(
-                    title: Text(product.name),
+                    title: Text(
+                      product.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
                     subtitle: Text(
                       '₹${product.price.toStringAsFixed(2)} (GST: ${(product.gstRate * 100).toStringAsFixed(0)}%)',
+                      style: TextStyle(color: textColor.withOpacity(0.7)),
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (selectedItem.quantity > 0)
-                          IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: () => _removeFromBill(selectedItem),
+                    trailing: Container(
+                      decoration: BoxDecoration(
+                        color: selectedItem.quantity > 0 ? primaryColor.withOpacity(0.1) : null,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (selectedItem.quantity > 0)
+                            IconButton(
+                              icon: Icon(Icons.remove, color: primaryColor),
+                              onPressed: () => _removeFromBill(selectedItem),
+                            ),
+                          Text(
+                            selectedItem.quantity > 0 ? selectedItem.quantity.toString() : '',
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        Text(selectedItem.quantity > 0 ? selectedItem.quantity.toString() : ''),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => _addToBill(product),
-                        ),
-                      ],
+                          IconButton(
+                            icon: Icon(Icons.add, color: primaryColor),
+                            onPressed: () => _addToBill(product),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -208,6 +240,8 @@ class _BillingScreenState extends State<BillingScreen> {
           // Bill Summary
           Card(
             margin: const EdgeInsets.all(8.0),
+            elevation: 2,
+            color: cardColor,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -215,10 +249,16 @@ class _BillingScreenState extends State<BillingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total GST:'),
+                      Text(
+                        'Total GST:',
+                        style: TextStyle(color: textColor),
+                      ),
                       Text(
                         '₹${_totalGst.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: secondaryColor,
+                        ),
                       ),
                     ],
                   ),
@@ -226,15 +266,19 @@ class _BillingScreenState extends State<BillingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Total Amount:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
                       ),
                       Text(
                         '₹${_totalAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
+                          color: primaryColor,
                         ),
                       ),
                     ],
@@ -243,7 +287,12 @@ class _BillingScreenState extends State<BillingScreen> {
                   ElevatedButton(
                     onPressed: _createInvoice,
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Text('Create Invoice'),
                   ),
